@@ -8,8 +8,8 @@
 ##############################################################
 #   I    #  Exploratory analysis: Who are on the ship?   
 ##############################################################
-#        #  Basic demographics (sex, age)                   #
-#        #  Social-economic status                          #
+#  ALEX  #  Basic demographics (sex, age)                   #
+#  ALEX  #  Social-economic status                          #
 #  ALEX  #  Summary                                         #
 ##############################################################
 #   II   #  Independence testing: Who get to survive?
@@ -17,7 +17,7 @@
 #        #  Testing for sex and survival                    #
 #  ALEX  #  Testing for age and survival                    # 
 #        #  Testing for passenger class and survival        #
-#        #  Conclusion                                      #                                                
+#  AlEX  #  Conclusion                                      #                                                
 ##############################################################
 
 
@@ -36,15 +36,15 @@
 #        #  Analysis  (4): a permutation test                #
 #        #  Analysis  (4): a p-value                         #
 #        #  Analysis  (4): analysis of a contingency tables  #
-#        #  Analysis  (4): at least 20 rows                  #
+#        #  Analysis  (4): Simulation vs Classical           #
 #        #  Creativity/Complexity: large data set            #             
 #        #  Creativity/Complexity: many columns              #                                                
-#        #  Creativity/Complexity: novel statistics(ratio)   #                                                  
+#        #  Creativity/Complexity: novel statistics          #                                                  
 #        #  Creativity/Complexity: software engineering      # ALEX?        
-#        #  Creativity/Complexity: use of quantile           #                                                  
-#        #  Creativity/Complexity: beautiful display         # ALEX(ggplots)? 
-#        #  Creativity/Complexity: more                     #     
-#        #  Creativity/Complexity (6)                        #     
+#        #  Creativity/Complexity: use of quantile           # not sure if it qualifies                                                  
+#        #  Creativity/Complexity: beautiful display         # ALEX, use ggplots? 
+#        #  Creativity/Complexity: Simulation over Classical # Alex, any insights from age analysis?     
+#        #  Creativity/Complexity  backup?                   #     
 ##############################################################
 
 ## The Dataset
@@ -96,10 +96,38 @@ sex<-titanic$sex # a categorical column
 survive<-titanic$survived # a numerical column with survived=1 or deceased=0
 
 
-# First let's looks at the distribution of age 
+
+
+
+
+# First let's look at the distribution of gender
+
+length(sex)
+index<-which((!is.na(sex) )&(!is.na(survive)) ); 
+sex2<-sex[index]; survive2<-survive[index];length(sex2);length(survive2)
+counts<-table(survive2,sex2); counts<-counts[,c(0,2,3)]; counts
+# a contingency table for gender
+women<-counts[2]/(counts[1]+counts[2]);women # women's survival rate 
+men<-counts[4]/(counts[3]+counts[4]);men # men's survival rate
+observed<-women/men;observed # women are almost 4 times more likely to survive than men!
+
+
+# plot a graph to visualize our statitistics 
+barplot(counts, xlab="gender",ylab="number of people",main="survival by sex")
+#ALEX - it would be nice to have a numbers of percentages on the bars 
+
+
+
+# Then let's look at age
 length(age)
-index=which(!is.na(age)); age<-age[index]; length(age)
-summary(age) 
+index<-which(!is.na(age)); age<-age[index]; length(age)
+summary(age) # 50% are adults of 21-39 
+# the range of ages is quite wide: from 2 months old to 80 
+
+# ALEX Could you improve the following graphs?
+boxplot(age) 
+mean(age) 
+mean(age, trim=0.25) # the majority falls in the range 20-40 
 
 # overlay a pdg on a histogram of age group
 
@@ -107,8 +135,19 @@ plot(density(age, col='blue',na.rm=TRUE))
 hist(age,freq=FALSE,add=TRUE)
 
 
-# we have a ship of passengers with quite a wide range of ages
-boxplot(age)
+# ALEX after you have grouped the age group into intervals of 10,
+# can you comment on the relationship between age, parents and class? 
+
+# for example, look at the distribution of children by pclass, by the number of parents, or by both
+
+#I know for a fact from wikipedia that most children are on the 
+# 3rd class cabin and most of them are with less than 1 parents accompanying them
+# Then we infer that many of them are accompanied by relatives, nannies or alike
+
+# This should complicate our conclusion that while children and 1st class get saved first
+# children are mostly in the 3rd class, suggesting these kids get saved less often. 
+
+
 
 
 
@@ -121,12 +160,12 @@ barplot(table(pclass),xlab="Passenger Class",ylab="Number of People",main="Distr
 
 # let's look at the distribution of their fare 
 
-length(fare); index=which(!is.na(fare)); fare<-fare[index]; length(fare)
+length(fare); index<-which(!is.na(fare)); fare<-fare[index]; length(fare)
 hist(fare,50,col="blue",freq=FALSE)
 # highly skewed with a long tail! In fact:
 summary(fare)
-# Most fares are less than 50 Pre-1970 British Pounds 
-# but there are seats as expensive as 500 Pounds!
+# Most fares are less than 32 Pre-1970 British Pounds 
+# but there are seats as expensive as 500 Pounds and as cheap as 0! Intrigued.
 
 
 
@@ -146,47 +185,22 @@ qqline(fare) # fare is not close to normal distribution at all
 
 
 
-# ALEX after you have analyzed the age group, can you comment on the relationship 
-# between age, parents and class? 
-
-# for example, look at the distribution of children by pclass, by the number of parents, and by both
-
-#I know for a fact from wikipedia that most children are on the 
-# 3rd class cabin and most of them are with less than 1 parents accompanying them
-# Then we infer that many of them are accompanied by relatives, nannies or alike
-
-# This should complicate our conclusion that while children and 1st class get saved first
-# children are mostly in the 3rd class, suggesting these kids get saved less often. 
-
-
-
 # ----------------------------SECTION TWO----------------------------
 # After some exploration, our main interest lies in 
 # the correlation of sex, socio-economic class, and age with survival
 
+
 # Let's start with examining sex and survival
-counts<-table(survive2,sex2); counts<-counts[,c(0,2,3)]; counts
-# ALEX - could you get rid of the awkward extra column of "0"
-women<-counts[2]/(counts[1]+counts[2]);women # women's survival rate 
-men<-counts[4]/(counts[3]+counts[4]);men # men's survival rate
-observed<-women/men;observed # women are almost 4 times more likely to survive than men!
 
-
-# plot a graph to visualize our statitistics 
-barplot(counts, xlab="gender",ylab="number of people",main="survival by sex")
-#ALEX - it would be nice to have a numbers of percentages on the bars 
-
-
-
-
-#Is this survival ratio statistically significant? Let's do two tests: 
+#Is the survival ratio of women over men statistically significant? 
+# Let's do two tests: 
 # A permutation test for the ratio of women and men who survived
 N=10^4-1 ; result<-numeric(N)  
 for (i in 1:N) {
   per.sex<-sample(sex2)
-  counts<-table(survive2,per.sex);counts<-counts[,c(0,2,3)]; counts
-  women<-counts[2]/(counts[1]+counts[2]);women # women's survival rate 
-  men<-counts[4]/(counts[3]+counts[4]);men # men's survival rate
+  counts2<-table(survive2,per.sex);counts2<-counts2[,c(0,2,3)]
+  women<-counts2[2]/(counts2[1]+counts2[2]) # women's survival rate 
+  men<-counts2[4]/(counts2[3]+counts2[4]) # men's survival rate
   result[i]<-women/men  
 }
 hist(result, breaks = "FD", prob = TRUE)
@@ -198,11 +212,12 @@ pValue = (sum (result >= observed) + 1)/(N+1); 2*pValue #double for 2-sided test
 
 
 
-# Now let's performa a chi-square test to further support our conviction: 
+# Now let's perform a chi-square test to further verify our conviction: 
 # NUll hypothesis: sex and survival are independent VS
 # Alternative hypothesis - women more likely to survive  
 
-chisq.test(counts) # first glance: highly dependent with statistical significance
+chisq.test(counts) 
+# first glance: two variables highly dependent with statistical significance
 
 chisq1 <-function(Obs){
   Expected <- rep(sum(Obs)/length(Obs),length(Obs))
@@ -210,21 +225,42 @@ chisq1 <-function(Obs){
 }
 #Calculate chi square for the observed data
 Chi1<-chisq1(counts);Chi1
-# calculate its p-value
-pchisq(Chi1,2,lower.tail=FALSE) # very small at 1% p-value level
+# calculate its p-value 
+pchisq(Chi1,1,lower.tail=FALSE) 
+# extremely small at 1% p-value level
+# strongly suggesting the relationship is not indepedent 
 
 
-# we can also simulate the results
+# BONUS point: advantage of simulation over classical chisquare test
 
+# Although in agreement on the inference, however, the large discrepany 
+# in values between the built-in test and our calculation makes us nervous 
+# e.g.p-values: 2.2e-16 for built-in; 9.304668e-131 for calculation
+# The same issue appears in the analysis of class and survival!
+# But we have no easy way to find out why! 
+# Also the degree of power in the values (esp. -131?!) are just way too high
+# Let's see if simulation can remedy this issue. 
+
+
+# simulate the results
 N = 10^4-1 ; sex.result <- numeric(N)
 for (i in 1:N) {
-  per_sex<- sample(sex)
-  sex.result[i]<-chisq1(table(per_sex,survive))
+  per_sex<- sample(sex2);
+  counts3<-table(survive2,per_sex)
+  counts3<-counts3[,c(0,2,3)]
+  sex.result[i]<-chisq1(counts3)
 }
-hist(sex.result, breaks = "FD")  
-abline(v = Chi1, col = "red") 
+
+hist(sex.result, freq=FALSE,breaks = "FD",xlim=c(100,600))  
+abline(v = Chi1, col = "red") # way too far
 pVal <-(sum (sex.result >= Chi1) +1)/(N+1); pVal;pVal*2 
-# we can safely assert that sex and survival are not independent
+
+# Not only the pvalue from simulation clearly is more reasonable
+# but also it confirms the same inference without giving 
+# the unknown discrepany and extremeness in values in the classical method.
+
+
+# Now we can safely conclude that sex and survival are not independent
 # confirming our observation from the graph that women are more likely to survive
 
 
@@ -237,9 +273,10 @@ pVal <-(sum (sex.result >= Chi1) +1)/(N+1); pVal;pVal*2
 
 
 
+
 # Now we can turn to class and survival
 
-# clear out the empty values!
+
 counts<-table(survive,pclass);counts
 chisq.test(counts) # far below 1% pvalue level suggests high dependence for a large chisq
 
@@ -254,31 +291,34 @@ chisq1 <-function(Obs){
   Expected <- rep(sum(Obs)/length(Obs),length(Obs))
   sum((Obs-Expected)^2/Expected)
 }
-
 Chi1<-chisq1(counts);Chi1 
 #a large chi-square avlue for the observed data
 pchisq(Chi1,2,lower.tail=FALSE) # highly significant
-# again, a small p-value with a large chisq suggests high dependence
+# A small p-value with a large chisq value suggests high dependence
+# bewteen survivalibity and class
 
-# we can also simulate the results
+# Again, the unknown discrepany and extremeness in values appear in the classical method. 
+
+# But we can also simulate the results to verify the same thing for comparison.
+
 
 N = 10^4-1 ; class.result <- numeric(N)
 for (i in 1:N) {
   per_class<- sample(pclass)
   class.result[i]<-chisq1(table(per_class,survive))
 }
-table(per_class,survive)
-
-table(pclass, age)
-
-hist(class.result, breaks = "FD",xlim=c(300,600),freq=FALSE)  
+hist(class.result, breaks = "FD",freq=FALSE)  
+hist(class.result, breaks = "FD",freq=FALSE, xlim=c(300,600))  
 abline(v = Chi1, col = "red") # too far away from the graph
-pVal <-(sum (sex.result >= Chi1) +1)/(N+1); pVal;pVal*2 
-# we can safely assert that class and survival are not independent
+pVal <-(sum (class.result >= Chi1) +1)/(N+1); pVal;pVal*2 # below 1% level
+# Simulation clearly verifies the same conclusion without giving the mystery.
+# It works practically better.
+
+# Now we can safely assert that class and survival are not independent,
 # confirming our visualization that the rich are more likely to survive
 
 
 # Conclusion:
-# Women, children (TBD?), and the first class are most likely to survive than others 
+# Women, children, and the first class are more likely to survive than others 
 
 
