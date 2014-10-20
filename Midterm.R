@@ -47,12 +47,18 @@
 #        #  Creativity/Complexity  backup?                   #     
 ##############################################################
 
-## THE DATASET
+## The R Environment
+# For graphs and charts, we will use the 'ggplot2' plotting library
+#install.packages("ggplot2")
+#install.packages("scales")
+library("ggplot2")
+library("scales")
+
+## The Dataset
 #  Our dataset comprises personal and logistical data on the
 #  passengers on the Titanic. 
 #  The data can be found at:
 #   http://lib.stat.cmu.edu/S/Harrell/data/descriptions/titanic.html. 
-setwd("data/")
 titanic <- read.csv("titanic3.csv"); head(titanic, n=10)
 # The data is a sample of 1310 passengers from the population size of 1317
 #  so it approximates well the population
@@ -68,11 +74,6 @@ survive <- titanic$survived # survived/not survived (0, 1), a numerical column
 #------------------------SECTION ONE------------------------------
 # To get a sense of the sample, let's do some explotory analysis
 # Let's visualize the variables with different plots.
-# For graphs and charts, we will use the 'ggplot2' plotting library
-#install.packages("ggplot2")
-#install.packages("scales")
-library("ggplot2")
-library("scales")
 
 ## Age ## 
 # The data set contains age data on ~80% of the passengers (1046 / 1310)
@@ -113,12 +114,11 @@ ggplot(data=age.children, aes(x=pclass, y=age)) +
     xlab("Passenger Class") +
     ylab("Count") +
     geom_bar(stat="identity") +
-    theme_bw()
 
 ## Gender ##
 index<-which((!is.na(titanic$sex) )&(!is.na(titanic$survived))); 
 sex<-data.frame(titanic$survived[index],titanic$sex[index])
-names(sex) <- c("survived", "sex"); head(sex)
+names(sex) <- c("survive ", "sex"); head(sex)
 # 466 females and 843 males have survival data
 nrow(subset(sex, sex == "female")); nrow(subset(sex, sex == "male"))
 # a contingency table for gender
@@ -135,12 +135,19 @@ text(.71, 510, paste(as.character(round(women, 3) * 100),"% Survived"))
 text(1.9, 890, paste(as.character(round(men, 3 ) * 100),"% Survived"))
 legend("right", fill=c("black", "grey"), legend=c("Perished", "Survived"))
 
-# Then we look at its passenger class - prox for social-economic status
-
+# Then we look at passenger class (a proxy for social-economic status)
 # ALEX- this looks not nice. Can you fix this? surely ggplots will do much better
 barplot(table(titanic$pclass),xlab="Passenger Class",ylab="Number of People",main="Distribution of Passengers by Class")
+ggplot(data=titanic, aes(x=pclass)
+ggplot(data=age.children, aes(x=pclass, y=age)) +
+    ggtitle("Children Passengers: Passenger Class") +
+    xlab("Passenger Class") +
+    ylab("Count") +
+    geom_bar(stat="identity") +
+    theme_bw()
 # the ship has slight more 3rd class passengers than the sum of 1st and 2nd class
-
+qqnorm(pclass)
+qqline(pclass) # not a good fit at all, meaning it's not normal
 
 # Fare
 fare <- titanic$fare
@@ -151,21 +158,8 @@ hist(fare,50,col="blue",freq=FALSE)
 summary(fare)
 # Most fares are less than 34 Pre-1970 British Pounds 
 # but there are seats as expensive as 512 Pounds and as cheap as free
-
-# normal quantile test: how comparable are these variables to normal distr.?
-
-
-qqnorm(pclass)
-qqline(pclass) # not a good fit at all, meaning it's not normal
-
 qqnorm(fare)
 qqline(fare) # fare is not close to normal distribution at all
-
-# there is no indication that we can apply normal distribtion to them  
-
-
-
-
 
 # ----------------------------SECTION TWO----------------------------
 # After some exploration, our main interest lies in 
