@@ -74,7 +74,6 @@ survive <- titanic$survived # survived/not survived (0, 1), a numerical column
 #install.packages("scales")
 library("ggplot2")
 library("scales")
-dev.off()
 
 ## AGE 
 # The data set contains age data on ~80% of the passengers (1046 / 1310)
@@ -97,20 +96,20 @@ ggplot(age.nna, aes(x=age)) +
     ylab("Density") + 
     geom_histogram(aes(y=..density..), binwidth=1)+
     geom_density(alpha=.5, fill="#FFFFFF")
-
-
-# ALEX after you have grouped the age group into intervals of 10,
-# can you comment on the relationship between age, parents and class? 
-
-# for example, look at the distribution of children by pclass, by the number of parents, or by both
-
-#I know for a fact from wikipedia that most children are on the 
-# 3rd class cabin and most of them are with less than 1 parents accompanying them
-# Then we infer that many of them are accompanied by relatives, nannies or alike
-
-# This should complicate our conclusion that while children and 1st class get saved first
-# children are mostly in the 3rd class, suggesting these kids get saved less often. 
-
+# Now, let's look at the children on board
+age.children <- titanic[which(titanic$age < 18),]; nrow(age.children) # 154 children
+summary(age.children$pclass) 
+# Split children by passenger class
+age.children.pclass <- split(age.children, age.children$pclass)
+# 15 kids in 1st class, 33 in 2nd; 106 in 3rd
+nrow(age.children.pclass$"1"); nrow(age.children.pclass$"2");nrow(age.children.pclass$"3")
+# Plot number of children in each passenger class
+ggplot(data=age.children, aes(x=pclass, y=age)) +
+    ggtitle("Children Passengers: Passenger Class") +
+    xlab("Passenger Class") +
+    ylab("Count") +
+    geom_bar(stat="identity") +
+    theme_bw()
 
 # First let's look at the distribution of gender
 
