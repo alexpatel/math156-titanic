@@ -61,7 +61,6 @@ nrow(titanic)
 ## THE COLUMNS
 # define our variables
 age     <- titanic$age      # age, a numerical column
-fare    <- titanic$fare     # ticket fare, a numerical column
 pclass  <- titanic$pclass   # cabin class, a categorical column
 sex     <- titanic$sex      # gender, a categorical column
 survive <- titanic$survived # survived/not survived (0, 1), a numerical column 
@@ -75,7 +74,7 @@ survive <- titanic$survived # survived/not survived (0, 1), a numerical column
 library("ggplot2")
 library("scales")
 
-## AGE 
+## Age ## 
 # The data set contains age data on ~80% of the passengers (1046 / 1310)
 length(age); length(which(!is.na(age))) 
 age.nna <- titanic[!is.na(age),] # strip data of rows with age=NULL
@@ -96,13 +95,18 @@ ggplot(age.nna, aes(x=age)) +
     ylab("Density") + 
     geom_histogram(aes(y=..density..), binwidth=1)+
     geom_density(alpha=.5, fill="#FFFFFF")
+# We can see the discrepancies at extreme ages with a QQ-plot
+qqnorm(age.nna$age)
+qqline(age.nna$age)
+
 # Now, let's look at the children on board
 age.children <- titanic[which(titanic$age < 18),]; nrow(age.children) # 154 children
 summary(age.children$pclass) 
 # Split children by passenger class
 age.children.pclass <- split(age.children, age.children$pclass)
 # 15 kids in 1st class, 33 in 2nd; 106 in 3rd
-nrow(age.children.pclass$"1"); nrow(age.children.pclass$"2");nrow(age.children.pclass$"3")
+counts <- c(nrow(age.children.pclass$"1"), nrow(age.children.pclass$"2"), nrow(age.children.pclass$"3"))
+counts
 # Plot number of children in each passenger class
 ggplot(data=age.children, aes(x=pclass, y=age)) +
     ggtitle("Children Passengers: Passenger Class") +
@@ -111,43 +115,45 @@ ggplot(data=age.children, aes(x=pclass, y=age)) +
     geom_bar(stat="identity") +
     theme_bw()
 
-# First let's look at the distribution of gender
-
-length(sex)
-index<-which((!is.na(sex) )&(!is.na(survive)) ); 
-sex2<-sex[index]; survive2<-survive[index];length(sex2);length(survive2)
-counts<-table(survive2,sex2); counts<-counts[,c(0,2,3)]; counts
+## Gender ##
+index<-which((!is.na(titanic$sex) )&(!is.na(titanic$survived))); 
+sex<-data.frame(titanic$survived[index],titanic$sex[index])
+names(sex) <- c("survived", "sex"); head(sex)
+# 466 females and 843 males have survival data
+nrow(subset(sex, sex == "female")); nrow(subset(sex, sex == "male"))
 # a contingency table for gender
-women<-counts[2]/(counts[1]+counts[2]);women # women's survival rate 
-men<-counts[4]/(counts[3]+counts[4]);men # men's survival rate
-observed<-women/men;observed # women are almost 4 times more likely to survive than men!
-
-
-# plot a graph to visualize our statitistics 
-barplot(counts, xlab="gender",ylab="number of people",main="survival by sex")
-#ALEX - it would be nice to have a numbers of percentages on the bars 
+counts<-table(sex)[,c(0,2,3)]; counts
+# Women's survival rate 
+wome.survivedn<-counts[2]/(counts[1]+counts[2]);women 
+# Men's survival rate
+men.survived <-counts[4]/(counts[3]+counts[4]);men 
+# Women are almost 4 times more likely to survive than men!
+observed <- women.survived / men.survived; observed 
+# Visualizing gender vs. survival
+barplot(counts, ylim=c(0, 1000), xlab="Gender",ylab="Count",main="Survival by Sex")
+text(.71, 510, paste(as.character(round(women, 3) * 100),"% Survived"))
+text(1.9, 890, paste(as.character(round(men, 3 ) * 100),"% Survived"))
+legend("right", fill=c("black", "grey"), legend=c("Perished", "Survived"))
 
 # Then we look at its passenger class - prox for social-economic status
 
 # ALEX- this looks not nice. Can you fix this? surely ggplots will do much better
-barplot(table(pclass),xlab="Passenger Class",ylab="Number of People",main="Distribution of Passengers by Class")
+barplot(table(titanic$pclass),xlab="Passenger Class",ylab="Number of People",main="Distribution of Passengers by Class")
 # the ship has slight more 3rd class passengers than the sum of 1st and 2nd class
 
 
-# let's look at the distribution of their fare 
-
+# Fare
+fare <- titanic$fare
+# we have fare data for most of the passengers in the data set
 length(fare); index<-which(!is.na(fare)); fare<-fare[index]; length(fare)
 hist(fare,50,col="blue",freq=FALSE)
-# highly skewed with a long tail! In fact:
+# highly skewed with a long tail
 summary(fare)
-# Most fares are less than 32 Pre-1970 British Pounds 
-# but there are seats as expensive as 500 Pounds and as cheap as 0! Intrigued.
-
-
+# Most fares are less than 34 Pre-1970 British Pounds 
+# but there are seats as expensive as 512 Pounds and as cheap as free
 
 # normal quantile test: how comparable are these variables to normal distr.?
-qqnorm(age)
-qqline(age) # unsatifactory fit
+
 
 qqnorm(pclass)
 qqline(pclass) # not a good fit at all, meaning it's not normal
