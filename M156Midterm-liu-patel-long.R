@@ -73,8 +73,11 @@ for (i in 1:N) {
     adult.sample <- length(which(titanic$survived[-index] == 1)) / (nrow(titanic) - length(index))
     result[i] <- child.sample / adult.sample 
 }
-hist(result, breaks = "FD", prob = TRUE)
-abline(v = observed, col = "red")
+qplot(result, binwidth=.05) + 
+    geom_vline(xintercept = observed, color="red", label="Observed") +
+    ggtitle("Permutation Test: Child Survival / Adult Survival") + 
+    xlab("Ratio") + 
+    ylab("Count")
 pvalue = (sum (result >= observed) + 1)/(N+1); 2*pvalue 
 # A near-zero p-value indicates that the evidence supports the hypothesis that 
 #  children are more likely to have survived
@@ -109,9 +112,12 @@ for (i in 1:N) {
     men<-counts2[4]/(counts2[3]+counts2[4]) # men's survival rate
     result[i]<-women/men  
 }
-hist(result, breaks = "FD", prob = TRUE)
-hist(result, breaks = "FD", prob = TRUE,xlim=c(0,4))
-abline(v = observed, col = "red") # too far from the distribution
+qplot(result, binwidth=.05) + 
+    geom_vline(xintercept = observed, color="red", label="Observed") + 
+    xlim(0, 4) +
+    ggtitle("Permutation Test: Female Survival / Male Survival") + 
+    xlab("Ratio") + 
+    ylab("Count")
 pValue = (sum (result >= observed) + 1)/(N+1); 2*pValue #double for 2-sided test
 # Far below 1% pvalue level: the observed ratio is extremely unlikely to occur by chance! 
 # We have reason now to belive that women are saved first
@@ -150,9 +156,12 @@ for (i in 1:N) {
     counts3<-counts3[,c(0,2,3)]
     sex.result[i]<-chisq1(counts3)
 }
-
-hist(sex.result, freq=FALSE,breaks = "FD",xlim=c(100,600))  
-abline(v = Chi1, col = "red") # way too far
+qplot(sex.result, binwidth=1) + 
+    geom_vline(xintercept = Chi1, color="red", label="Observed") + 
+    xlim(100, 600) +
+    ggtitle("Simulation: Sex Survival") + 
+    xlab("Chi-squared") + 
+    ylab("Count")
 pVal <-(sum (sex.result >= Chi1) +1)/(N+1); pVal;pVal*2 
 
 # Not only the pvalue from simulation clearly is more reasonable
@@ -164,7 +173,7 @@ pVal <-(sum (sex.result >= Chi1) +1)/(N+1); pVal;pVal*2
 fare <- titanic$fare
 # we have fare data for most of the passengers in the data set
 length(fare); index<-which(!is.na(fare)); fare<-fare[index]; length(fare)
-hist(fare,50,col="blue",freq=FALSE)
+hist(fare,50,col="blue",freq=FALSE, main="Ticket Fare")
 # highly skewed right with a long tail
 summary(fare)
 # Most fares are less than 34 Pre-1970 British Pounds 
@@ -203,9 +212,12 @@ for (i in 1:N) {
   per_class<- sample(pclass)
   class.result[i]<-chisq1(table(per_class,survive))
 }
-hist(class.result, breaks = "FD",freq=FALSE)  
-hist(class.result, breaks = "FD",freq=FALSE, xlim=c(300,600))  
-abline(v = Chi1, col = "red") # too far away from the graph
+qplot(class.result, binwidth=1) + 
+    geom_vline(xintercept = Chi1, color="red", label="Observed") + 
+    xlim(300,600) +
+    ggtitle("Simulation: Survival by Class") + 
+    xlab("chi-squared") + 
+    ylab("Count")
 pVal <-(sum (class.result >= Chi1) +1)/(N+1); pVal*2 # below 1% level
 # Simulation clearly verifies the same conclusion without giving the mystery.
 # It works practically better.
