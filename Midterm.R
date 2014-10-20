@@ -47,69 +47,56 @@
 #        #  Creativity/Complexity (6)                        #     
 ##############################################################
 
-## The Dataset
-
+## THE DATASET
 #  Our dataset comprises personal and logistical data on the
-#  passengers on the Titanic. Our questions about
-#  this data are:
-#      * What are the leading factors associating with survival from the sinking of  
-#         the Titanic: cabin, ticket price, sex or age?
-#     * Are these relationships, if any, significant? 
-#     * Does a family get to survive together most often? 
-#
-#  The data can be found at http://lib.stat.cmu.edu/S/Harrell/data/descriptions/titanic.html. 
-
+#  passengers on the Titanic. 
+#  The data can be found at:
+#   http://lib.stat.cmu.edu/S/Harrell/data/descriptions/titanic.html. 
 setwd("data/")
-titanic.csv <- read.csv("titanic3.csv"); head(titanic.csv)
-ncol(titanic.csv); nrow(titanic.csv)
+titanic <- read.csv("titanic3.csv"); head(titanic, n=10)
+# The data is a sample of 1310 passengers from the population size of 1317
+#  so it approximates well the population
+nrow(titanic)  
 
-
-
-
-# Source of data: http://lib.stat.cmu.edu/S/Harrell/data/descriptions/titanic.html
-
-titanic<-read.csv("titanic3.csv")
-
-head(titanic)
-
-
-nrow(titanic)
-# a sample of 1310 passengers' data drawn from the population size of 1317
-# so it approximates well the population
-
+## THE COLUMNS
+# define our variables
+age     <- titanic$age      # age, a numerical column
+fare    <- titanic$fare     # ticket fare, a numerical column
+pclass  <- titanic$pclass   # cabin class, a categorical column
+sex     <- titanic$sex      # gender, a categorical column
+survive <- titanic$survived # survived/not survived (0, 1), a numerical column 
 
 #------------------------SECTION ONE------------------------------
 # To get a sense of the sample, let's do some explotory analysis
-# First we'll visualize the variables with different plots 
+# Let's visualize the variables with different plots.
+# For graphs and charts, we will use the 'ggplot2' plotting library
+#install.packages("ggplot2")
+#install.packages("scales")
+library("ggplot2")
+library("scales")
+dev.off()
 
-
-
-# ALEX: for the visual bonus point, can we replace some or all plots with ggplot2?
-#library("ggplot2")
-
-
-# define our variables
-age<-titanic$age # a numerical column
-fare<-titanic$fare # a numerical column
-pclass<-titanic$pclass # a categorical column
-sex<-titanic$sex # a categorical column
-survive<-titanic$survived # a numerical column with survived=1 or deceased=0
-
-
-# First let's looks at the distribution of age 
-length(age)
-index=which(!is.na(age)); age<-age[index]; length(age)
-summary(age) 
-
-# overlay a pdg on a histogram of age group
-
-plot(density(age, col='blue',na.rm=TRUE))
-hist(age,freq=FALSE,add=TRUE)
-
-
-# we have a ship of passengers with quite a wide range of ages
-boxplot(age)
-
+## AGE 
+# The data set contains age data on ~80% of the passengers (1046 / 1310)
+length(age); length(which(!is.na(age))) 
+age.nna <- titanic[!is.na(age),] # strip data of rows with age=NULL
+summary(age.nna$age) 
+# Notice the min/max: 2 months versus 80 years!
+# Let's do a boxplot of age vs. gender
+p <- qplot(x=age.nna$sex, y=age.nna$age, data=age.nna, 
+      geom=c("boxplot", "jitter"), main="Age vs. Gender", xlab="Gender", 
+      ylab="Age") + coord_flip()
+# Add in the 1912 U.S. Life Expectancy
+#  From: http://demog.berkeley.edu/~andrew/1918/figure2.html
+p + geom_hline(yintercept = 51.5, color="blue", label="Life Exp. (M)") + 
+    geom_hline(yintercept = 55.9, colour="red", label="Life Exp. (F)")
+# Overlay a PDG on a histogram of age
+ggplot(age.nna, aes(x=age)) + 
+    ggtitle("Passenger Age") + 
+    xlab("Age") + 
+    ylab("Density") + 
+    geom_histogram(aes(y=..density..), binwidth=1)+
+    geom_density(alpha=.5, fill="#FFFFFF")
 
 
 # Then we look at its passenger class - prox for social-economic status
