@@ -24,7 +24,7 @@ titanic <- read.csv("titanic3.csv"); str(titanic)
 titanic <- data.frame(titanic$survived, titanic$age, titanic$sex, titanic$fare, titanic$pclass)
 names(titanic) <- c("survived", "age", "sex", "fare", "pclass"); head(titanic)
 
-## PART I: AGE
+## First, we look at passenger age. 
 # The data set contains age data on ~80% of the passengers (1046 / 1310)
 age.nna <- titanic[!is.na(titanic$age),] # strip data of rows with age=NULL
 summary(age.nna$age) 
@@ -79,7 +79,7 @@ pvalue = (sum (result >= observed) + 1)/(N+1); 2*pvalue
 # A near-zero p-value indicates that the evidence supports the hypothesis that 
 #  children are more likely to have survived
 
-## PART II: Gender
+## Next, let's look at gender. 
 # extract passengers with non-null sex/survival data
 index<-which((!is.na(titanic$sex) )&(!is.na(titanic$survived))); 
 sex<-data.frame(titanic$survived[index],titanic$sex[index])
@@ -132,8 +132,6 @@ pchisq(Chi1,1,lower.tail=FALSE)
 # extremely small at 1% p-value level
 # strongly suggesting the relationship is not indepedent 
 
-# BONUS point: advantage of simulation over classical chisquare test
-
 # Although in agreement on the inference, however, the large discrepany 
 # in values between the built-in test and our calculation makes us nervous 
 # e.g.p-values: 2.2e-16 for built-in; 9.304668e-131 for calculation
@@ -159,59 +157,9 @@ pVal <-(sum (sex.result >= Chi1) +1)/(N+1); pVal;pVal*2
 # but also it confirms the same inference without giving 
 # the unknown discrepany and extremeness in values in the classical method.
 
-## PART III: Passenger Class and Fare
-# Fare
-fare <- titanic$fare
-# we have fare data for most of the passengers in the data set
-length(fare); index<-which(!is.na(fare)); fare<-fare[index]; length(fare)
-hist(fare,50,col="blue",freq=FALSE)
-# highly skewed right with a long tail
-summary(fare)
-# Most fares are less than 34 Pre-1970 British Pounds 
-# but there are seats as expensive as 512 Pounds and as cheap as free
-qqnorm(fare)
-qqline(fare) 
-
-# Passenger class is a proxy for social-economic status
-pclass <- titanic$pclass
-survive <- titanic$survived
-barplot(table(pclass),xlab="Passenger Class",ylab="Number of People",main="Distribution of Passengers by Class")
-# the ship has slight more 3rd class passengers than the sum of 1st and 2nd class
-counts<-table(survive,pclass);counts
-chisq.test(counts) # far below 1% pvalue level suggests high dependence for a large chisq
-
-# plot a graph to support our inference
-barplot(counts, xlab="passenger class",ylab="number of people",main="survival by class")
-# it seems first class has more survival than other classes
-# could this be due to some chance event?
-
-# testing hypothesis: do rich passengers get saved more often? 
-chisq1 <-function(Obs){
-  Expected <- rep(sum(Obs)/length(Obs),length(Obs))
-  sum((Obs-Expected)^2/Expected)
-}
-Chi1<-chisq1(counts);Chi1 
-#a large chi-square value for the observed data
-pchisq(Chi1,2,lower.tail=FALSE) # highly significant
-# A small p-value with a large chisq value suggests high dependence
-# between survivalibity and class
-
-# Again, the unknown discrepany and extremeness in values appear in the classical method. 
-# But we can also simulate the results to verify the same thing for comparison.
-N = 10^3-1 ; class.result <- numeric(N)
-for (i in 1:N) {
-  per_class<- sample(pclass)
-  class.result[i]<-chisq1(table(per_class,survive))
-}
-hist(class.result, breaks = "FD",freq=FALSE)  
-hist(class.result, breaks = "FD",freq=FALSE, xlim=c(300,600))  
-abline(v = Chi1, col = "red") # too far away from the graph
-pVal <-(sum (class.result >= Chi1) +1)/(N+1); pVal*2 # below 1% level
-# Simulation clearly verifies the same conclusion without giving the mystery.
-# It works practically better.
-
-# The evidence supports the hypothesis that passengers in lower-numbered passenger classes are
-#  more likely to have survived.the sinking of the Titanic.
+## We also looked at passenger class and ticket fare (you can see the code in our long script). 
+# We found that the evidence supports the hypothesis that passengers in lower-numbered passenger classes are more 
+# likely to have survived.the sinking of the Titanic.
 
 # Conclusion:
 # Women, children, and the first class are more likely to survive than others 
